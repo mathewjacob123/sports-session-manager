@@ -28,6 +28,10 @@ func main() {
 	playerHandler  := handlers.NewPlayerHandler(playerService)
 	sessionHandler := handlers.NewSessionHandler(sessionService)
 
+
+teamService := services.NewTeamService(sessionRepo, playerRepo)
+teamHandler  := handlers.NewTeamHandler(teamService)
+
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
@@ -61,6 +65,7 @@ func main() {
 		sessions.GET("/:id/polls",                     sessionHandler.GetPolls)
 		sessions.POST("/:id/polls/:pollId/vote",       sessionHandler.VoteForPoll)
 		sessions.POST("/:id/polls/:pollId/lock",       sessionHandler.LockPollWinner)
+		sessions.POST("/:id/generate-teams", teamHandler.GenerateTeams)
 	}
 
 	log.Println("Server running on port", cfg.Port)

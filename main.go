@@ -19,14 +19,17 @@ func main() {
 	// repositories
 	playerRepo  := repository.NewPlayerRepository(database)
 	sessionRepo := repository.NewSessionRepository(database)
+	penaltyRepo := repository.NewPenaltyRepository(database)
 
 	// services
 	playerService  := services.NewPlayerService(playerRepo)
 	sessionService := services.NewSessionService(sessionRepo, playerRepo)
+	penaltyService := services.NewPenaltyService(penaltyRepo, playerRepo, sessionRepo)
 
 	// handlers
 	playerHandler  := handlers.NewPlayerHandler(playerService)
 	sessionHandler := handlers.NewSessionHandler(sessionService)
+	penaltyHandler := handlers.NewPenaltyHandler(penaltyService)
 
 
 teamService := services.NewTeamService(sessionRepo, playerRepo)
@@ -48,6 +51,7 @@ teamHandler  := handlers.NewTeamHandler(teamService)
 		players.POST("/:id/boot",      playerHandler.BootPlayer)
 		players.POST("/:id/strike",    playerHandler.AddStrike)
 		players.GET("/:id/strikes",    playerHandler.GetPlayerStrikes)
+		players.GET("/:id/penalties", penaltyHandler.GetPenaltiesByPlayer)
 	}
 
 	// session routes
@@ -66,7 +70,13 @@ teamHandler  := handlers.NewTeamHandler(teamService)
 		sessions.POST("/:id/polls/:pollId/vote",       sessionHandler.VoteForPoll)
 		sessions.POST("/:id/polls/:pollId/lock",       sessionHandler.LockPollWinner)
 		sessions.POST("/:id/generate-teams", teamHandler.GenerateTeams)
+		sessions.GET("/:id/penalties", penaltyHandler.GetPenaltiesBySession)
 	}
+
+	penalties := r.Group("/penalties")
+{
+    penalties.POST("/:id/mark-paid", penaltyHandler.MarkAsPaid)
+}
 
 	log.Println("Server running on port", cfg.Port)
 	r.Run(":" + cfg.Port)
